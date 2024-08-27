@@ -70,7 +70,7 @@ FSFloaterProtectedFolders::~FSFloaterProtectedFolders()
 }
 
 //virtual
-BOOL FSFloaterProtectedFolders::postBuild()
+bool FSFloaterProtectedFolders::postBuild()
 {
     mFolderList = getChild<LLScrollListCtrl>("folder_list");
     mFolderList->setFilterColumn(0);
@@ -82,7 +82,7 @@ BOOL FSFloaterProtectedFolders::postBuild()
     mFilterEditor = getChild<LLFilterEditor>("filter_input");
     mFilterEditor->setCommitCallback(boost::bind(&FSFloaterProtectedFolders::onFilterEdit, this, _2));
 
-    return TRUE;
+    return true;
 }
 
 //virtual
@@ -112,12 +112,12 @@ void FSFloaterProtectedFolders::draw()
 }
 
 //virtual
-BOOL FSFloaterProtectedFolders::handleKeyHere(KEY key, MASK mask)
+bool FSFloaterProtectedFolders::handleKeyHere(KEY key, MASK mask)
 {
     if (FSCommon::isFilterEditorKeyCombo(key, mask))
     {
-        mFilterEditor->setFocus(TRUE);
-        return TRUE;
+        mFilterEditor->setFocus(true);
+        return true;
     }
 
     return LLFloater::handleKeyHere(key, mask);
