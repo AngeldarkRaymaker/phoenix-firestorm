@@ -1188,7 +1188,7 @@ bool LLGLManager::initGL()
     // U32 old_vram = mVRAM;
     // mVRAM = 0;
 
-#if LL_WINDOWS
+#if 0 //LL_WINDOWS <FS:Ansariel> Special handling down below
     if (mHasAMDAssociations)
     {
         GLuint gl_gpus_count = wglGetGPUIDsAMD(0, 0);
@@ -1248,6 +1248,34 @@ bool LLGLManager::initGL()
         mVRAM = dedicated_memory/1024;
         LL_INFOS("RenderInit") << "VRAM Detected (NVXMemInfo):" << mVRAM << LL_ENDL;
     }
+
+#ifdef LL_WINDOWS
+    if (mHasAMDAssociations && mVRAM == 0)
+    {
+        GLuint gl_gpus_count = wglGetGPUIDsAMD(0, 0);
+        if (gl_gpus_count > 0)
+        {
+            GLuint* ids = new GLuint[gl_gpus_count];
+            wglGetGPUIDsAMD(gl_gpus_count, ids);
+
+            GLuint mem_mb = 0;
+            for (U32 i = 0; i < gl_gpus_count; i++)
+            {
+                wglGetGPUInfoAMD(ids[i],
+                    WGL_GPU_RAM_AMD,
+                    GL_UNSIGNED_INT,
+                    sizeof(GLuint),
+                    &mem_mb);
+                if (mVRAM < mem_mb)
+                {
+                    // basically pick the best AMD and trust driver/OS to know to switch
+                    mVRAM = mem_mb;
+                }
+            }
+        }
+        LL_INFOS("RenderInit") << "VRAM Detected (AMDAssociations):" << mVRAM << LL_ENDL;
+    }
+#endif
 
     if (mHasATIMemInfo && mVRAM == 0)
     { //ask the gl how much vram is free at startup and attempt to use no more than half of that
