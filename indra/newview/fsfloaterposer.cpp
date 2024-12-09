@@ -238,7 +238,7 @@ void FSFloaterPoser::onClose(bool app_quitting)
         gSavedSettings.setBOOL(POSER_ADVANCEDWINDOWSTATE_SAVE_KEY, mToggleAdvancedPanelBtn->getValue().asBoolean());
 
     if (gSavedSettings.getBOOL(POSER_STOPPOSINGWHENCLOSED_SAVE_KEY))
-        stopPosingSelf();
+        stopPosingAllAvatars();
 
     LLFloater::onClose(app_quitting);
 }
@@ -886,17 +886,21 @@ void FSFloaterPoser::startPosingSelf()
     onAvatarSelect();
 }
 
-void FSFloaterPoser::stopPosingSelf()
+void FSFloaterPoser::stopPosingAllAvatars()
 {
-    LLVOAvatar* avatar = getAvatarByUuid(gAgentAvatarp->getID());
-    if (!avatar)
-        return;
+    for (auto listItem : mAvatarSelectionScrollList->getAllData())
+    {
+        LLScrollListCell* cell = listItem->getColumn(COL_UUID);
+        if (!cell)
+            continue;
 
-    bool arePosingSelected = mPoserAnimator.isPosingAvatar(avatar);
-    if (!arePosingSelected)
-        return;
+        LLUUID      selectedAvatarId = cell->getValue().asUUID();
+        LLVOAvatar* listAvatar       = getAvatarByUuid(selectedAvatarId);
 
-    mPoserAnimator.stopPosingAvatar(avatar);
+        if (mPoserAnimator.isPosingAvatar(listAvatar))
+            mPoserAnimator.stopPosingAvatar(listAvatar);
+    }
+
     onAvatarSelect();
 }
 
@@ -2064,7 +2068,7 @@ void FSFloaterPoser::onAvatarsRefresh()
         LLAvatarName av_name;
         std::string animeshName = getControlAvatarName(avatar);
         if (animeshName.empty())
-            animeshName = avatar->getFullname();
+            continue;
 
         LLSD row;
         row["columns"][COL_ICON]["column"] = "icon";
@@ -2134,24 +2138,6 @@ void FSFloaterPoser::refreshTextHighlightingOnJointScrollLists()
 void FSFloaterPoser::setSavePosesButtonText(bool setAsSaveDiff)
 {
     setAsSaveDiff ? mSavePosesBtn->setLabel("Save Diff") : mSavePosesBtn->setLabel("Save Pose");
-}
-
-bool FSFloaterPoser::posingAnyoneOnScrollList()
-{
-    for (auto listItem : mAvatarSelectionScrollList->getAllData())
-    {
-        LLScrollListCell* cell = listItem->getColumn(COL_UUID);
-        if (!cell)
-            continue;
-
-        LLUUID      selectedAvatarId = cell->getValue().asUUID();
-        LLVOAvatar* listAvatar       = getAvatarByUuid(selectedAvatarId);
-
-        if (mPoserAnimator.isPosingAvatar(listAvatar))
-            return true;
-    }
-
-    return false;
 }
 
 void FSFloaterPoser::addBoldToScrollList(LLScrollListCtrl* list, LLVOAvatar* avatar)
