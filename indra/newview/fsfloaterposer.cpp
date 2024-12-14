@@ -2103,6 +2103,9 @@ std::string FSFloaterPoser::getControlAvatarName(const LLControlAvatar* avatar)
     if (attachedItem)
         return attachedItem->getName();
 
+    if (rootEditObject->permYouOwner())
+        return avatar->getFullname();
+
     return "";
 }
 
